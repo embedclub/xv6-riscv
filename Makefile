@@ -30,14 +30,14 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o
 
-# aarch64-unknown-elf- or aarch64-linux-gnu-
-# perhaps in /opt/aarch64/bin
+# aarch64-elf- or aarch64-linux-gnu-
+# perhaps in /opt/gcc-arm-8.3-2019.03-x86_64-aarch64-elf/bin
 #TOOLPREFIX = 
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
-TOOLPREFIX := $(shell if aarch64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
-	then echo 'aarch64-unknown-elf-'; \
+TOOLPREFIX := $(shell if aarch64-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+	then echo 'aarch64-elf-'; \
 	elif aarch64-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
 	then echo 'aarch64-linux-gnu-'; \
 	elif aarch64-unknown-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
