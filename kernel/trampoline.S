@@ -10,7 +10,7 @@
         # a page boundary.
         #
 
-#include "riscv.h"
+#include "aarch64.h"
 #include "memlayout.h"
 
 .section trampsec

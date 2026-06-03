@@ -5,8 +5,8 @@ static inline uint64
 r_mhartid()
 {
   uint64 x;
-  asm volatile("csrr %0, mhartid" : "=r" (x) );
-  return x;
+  asm volatile("mrs %0, mpidr_el1" : "=r" (x) );
+  return x & 0x3;
 }
 
 // Machine Status Register, mstatus
@@ -49,18 +49,18 @@ w_mepc(uint64 x)
 #define SSTATUS_UIE (1L << 0)  // User Interrupt Enable
 
 static inline uint64
-r_sstatus()
+r_daif()
 {
   uint64 x;
-  asm volatile("csrr %0, sstatus" : "=r" (x) );
+  asm volatile("mrs %0, daif" : "=r" (x) );
   return x;
 }
-
-static inline void 
-w_sstatus(uint64 x)
-{
-  asm volatile("csrw sstatus, %0" : : "r" (x));
-}
+// aarch64 not suporrt this style.
+//static inline void 
+//w_sstatus(uint64 x)
+//{
+//  asm volatile("csrw sstatus, %0" : : "r" (x));
+//}
 
 // Supervisor Interrupt Pending
 static inline uint64
@@ -206,14 +206,14 @@ w_pmpaddr0(uint64 x)
 static inline void 
 w_satp(uint64 x)
 {
-  asm volatile("csrw satp, %0" : : "r" (x));
+  asm volatile("msr ttbr0_el1, %0" : : "r" (x));
 }
 
 static inline uint64
 r_satp()
 {
   uint64 x;
-  asm volatile("csrr %0, satp" : "=r" (x) );
+  asm volatile("mrs %0, ttbr0_el1" : "=r" (x) );
   return x;
 }
 
@@ -269,21 +269,21 @@ r_time()
 static inline void
 intr_on()
 {
-  w_sstatus(r_sstatus() | SSTATUS_SIE);
+  asm volatile("msr daifclr, #0x2" ::: "memory");
 }
 
 // disable device interrupts
 static inline void
 intr_off()
 {
-  w_sstatus(r_sstatus() & ~SSTATUS_SIE);
+  asm volatile("msr daifset, #0x2" ::: "memory");
 }
 
 // are device interrupts enabled?
 static inline int
 intr_get()
 {
-  uint64 x = r_sstatus();
+  uint64 x = r_daif();
   return (x & SSTATUS_SIE) != 0;
 }
 
@@ -321,10 +321,36 @@ r_ra()
 
 // flush the TLB.
 static inline void
-sfence_vma()
+isb()
 {
-  // the zero, zero means flush all TLB entries.
-  asm volatile("sfence.vma zero, zero");
+  asm volatile("isb");
+}
+
+static inline void
+dsb()
+{
+  asm volatile("dsb sy");
+}
+
+static inline void
+dsb_ish()
+{
+  asm volatile("dsb ish");
+}
+
+static inline void
+tlbi_vmallelis()
+{
+  asm volatile("tlbi vmalle1is");
+}
+
+static inline void
+flush_tlb()
+{
+  dsb_ish();
+  tlbi_vmallelis();
+  dsb_ish();
+  isb();
 }
 
 typedef uint64 pte_t;

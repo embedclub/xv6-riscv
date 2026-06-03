@@ -2,7 +2,7 @@
 #include "types.h"
 #include "memlayout.h"
 #include "elf.h"
-#include "riscv.h"
+#include "aarch64.h"
 #include "defs.h"
 #include "fs.h"
 
@@ -62,12 +62,12 @@ void
 kvminithart()
 {
   // wait for any previous writes to the page table memory to finish.
-  sfence_vma();
+  flush_tlb();
 
   w_satp(MAKE_SATP(kernel_pagetable));
 
   // flush stale entries from the TLB.
-  sfence_vma();
+  flush_tlb();
 }
 
 // Return the address of the PTE in page table pagetable
